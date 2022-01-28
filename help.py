@@ -1,6 +1,6 @@
 import os
 import argparse
-root_path=r'B:\tools'
+root_path=r'快捷方式目录'
 ddict={}
 tools_env=root_path+';'
 filelist=[]
