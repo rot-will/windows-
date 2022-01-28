@@ -1,6 +1,6 @@
 import os
 import argparse
-root_path=r'快捷方式目录'
+root_path=r'B:\tools'
 ddict={}
 tools_env=root_path+';'
 filelist=[]
@@ -58,11 +58,11 @@ def getdirlist(path='',is_creat=False,hide=True):
 def setenv():
     os.system('setx tools %s'%tools_env.strip(';'))
 
-def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_in=True):
+def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_in=-1):
     n=0
     for i in dir_dict:
         if dir_dict[i]==1:
-            if is_show_file and dire_in:
+            if is_show_file and ((dire_in + is_dire)==-1 or (dire_in+is_dire)==2):
                 i=i[:i.find('.')]
                 if search_str and not is_dire:
                     if search_str in i:
@@ -73,7 +73,10 @@ def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_
                     n=n+1
         else:
             print("%s*- %s"%(pad,i))
-            showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,(search_str in i))
+            if is_dire:
+                showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,(search_str in i))
+            else:
+                showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire)
             n=n+1
     if n==0 and is_show_file:
         print("%s-- ..."%(pad))
