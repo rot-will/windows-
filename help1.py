@@ -62,31 +62,28 @@ def setenv():
 
 def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_in=-1,hide=True):
     n=0
-    cache=''
     for i in dir_dict:
         if dir_dict[i]==1:
             if is_show_file and ((dire_in + is_dire)==-1 or (dire_in+is_dire)==2):
                 i=i[:i.find('.')]
                 if search_str and not is_dire:
                     if search_str in i:
-                        cache+="%s|- %s\n"%(pad,i)
+                        print("%s|- %s"%(pad,i))
                         n=n+1
                 else:
-                    cache+="%s|- %s\n"%(pad,i)
+                    print("%s|- %s"%(pad,i))
                     n=n+1
         else:
             if ('hide' in i and hide) or ('real_hide' in i):
                 continue
-            n_1=0
-            cache_1=''
+            print("%s*- %s"%(pad,i))
             if is_dire:
-                n_1,cache_1=showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,(search_str in i or (dire_in==1)),hide)
+                showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,(search_str in i or (dire_in==1)),hide)
             else:
-                n_1,cache_1=showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,-1,hide)
-            if n_1!=0 or search_str=='':
-                cache+="%s*- %s\n"%(pad,i)+cache_1
-                n=n+1
-    return n,cache
+                showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,-1,hide)
+            n=n+1
+    if n==0 and is_show_file:
+        print("%s-- ..."%(pad))
 
 def editbat(name,cmd,path,real_dir,is_start):
     bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
@@ -202,7 +199,7 @@ def main():
     if args.show_type:
         parse.print_help()
         print("\n--------------- view Type ---------------\n")
-        print(showdict(ddict,'',is_show_file=not args.show_type)[1])
+        showdict(ddict,'',is_show_file=not args.show_type)
         exit(0)
     elif args.name:
         if not (((args.direct or args.type) and args.is_re) or ((args.direct and args.type) or args.is_re)):
@@ -213,7 +210,7 @@ def main():
     elif args.add_dire:
         create(args.add_dire)
     else:
-        print(showdict(ddict,'',args.search_str,is_dire=args.dire_str,hide=args.is_hide)[1])
+        showdict(ddict,'',args.search_str,is_dire=args.dire_str,hide=args.is_hide)
 
 if __name__=='__main__':
     main()
