@@ -1,10 +1,11 @@
+#!python3
 """
 @User: rot_will
 @date: 2022.1.29
 """
 import os
 import argparse
-root_path=r'B:\tools'
+import re
 ddict={}
 tools_env=root_path+';'
 filelist={}
@@ -47,7 +48,8 @@ def getdirlist(path='',is_creat=False):
         for i in cache:
             if os.path.isfile(root_path+'\\'+i):
                 ddict['/'][i]=1
-                filelist[i]=path
+                i=i[:i.find('.')]
+                filelist[i]=root_path
             else:
                 if is_creat:
                     if ' ' in root_path+'\\'+i:
@@ -57,8 +59,8 @@ def getdirlist(path='',is_creat=False):
                 getdirlist('$'+i,is_creat)
                 
 def setenv():
-    print(tools_env)
-    os.system('setx tools %s'%tools_env.strip(';'))
+    os.popen('@echo off && setx %s %s'%(var_name,tools_env.strip(';')))
+    print('[+] save success')
 
 def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_in=-1,hide=True):
     n=0
@@ -91,29 +93,29 @@ def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_
 def editbat(name,cmd,path,real_dir,is_start):
     bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
     direct="""@echo off
-set sour_dir=%CD%
-set dl=%CD:~0,2%
 {} %* 
-%dl%
-cd %sour_dir%
-@echo on
 """
     cd_dir=""
+    return_dir=""
     if real_dir:
+        return_dir="""%dl%
+cd %sour_dir%"""
+        cd_dir+="""set sour_dir=%CD%
+set dl=%CD:~0,2%
+"""
         cd_dir+=real_dir[:2]+'\n'
         cd_dir+="cd "+real_dir+'\n'
     cmd=cmd.replace("'",'"')
     if os.path.isfile(cmd):
         if '.exe' in cmd:
-            #direct=direct.format(cd_dir+'start '*is_start+'%s'%cmd)
             if ' ' in cmd:
-                direct=direct.format(cd_dir+'start "" '*is_start+'"%s"'%cmd)
+                direct=direct.format(cd_dir+'start "" '*is_start+'"%s"'%cmd)+return_dir
             else:
-                direct=direct.format(cd_dir+'start "" '*is_start+'%s'%cmd)
+                direct=direct.format(cd_dir+'start "" '*is_start+'%s'%cmd)+return_dir
         else:
-            direct=direct.format(cd_dir+'"%s"'%cmd)
+            direct=direct.format(cd_dir+'"%s"'%cmd)+return_dir
     else:
-        direct=direct.format(cd_dir+cmd)
+        direct=direct.format(cd_dir+cmd)+return_dir
     bat_file.write(direct.encode())
     
 def addbat(name,cmd='',path='',real_dir='',is_start=True,is_re=False):
@@ -121,7 +123,9 @@ def addbat(name,cmd='',path='',real_dir='',is_start=True,is_re=False):
         if path and cmd:
             exit("Only command contents or command directories can be replaced")
         elif path:
-            os.rename(filelist[name]+'\\'+name+'.bat',root_path+'\\'+path+'\\'+name+'.bat')
+            if os.path.isdir(root_path+'\\'+path):
+                path+="\\"+name
+            os.rename(filelist[name]+'\\'+name+'.bat',root_path+'\\'+path+'.bat')
             return 0
         elif cmd:
             editbat(name,cmd,filelist[name][len(root_path):],real_dir,is_start)
