@@ -1,3 +1,5 @@
+var_name=r"tools"
+root_path=r"D:\tools"
 #!python3
 """
 @User: rot_will
@@ -5,28 +7,33 @@
 """
 import os
 import argparse
-import re
+import sys,msvcrt
+wait=['< -- wait -- >\r','              \r']
 ddict={}
 tools_env=root_path+';'
 filelist={}
+comm_orig=['@echo off','%dl%','cd %sour_dir%','set sour_dir=%CD%','set dl=%CD:~0,2%','']
 def updir(cmd,path,dict_path,is_creat=False):
     global ddict
     global filelist
     global tools_env
     cache=os.listdir(path)
     exec("%s={}"%cmd)
+    dircache=[]
     for i in cache:
         if os.path.isfile(path+'/'+i):
             exec("%s['%s']=1"%(cmd,i))
             i=i[:i.find('.')]
             filelist[i]=path
         else:
-            if is_creat:
-                if ' ' in path+'\\'+i:
-                    tools_env+='"%s"'%(path+'\\'+i)+';'
-                else:
-                    tools_env+=path+'\\'+i+';'
-            getdirlist(dict_path+'$'+i,is_creat)
+            dircache.append(i)
+    for i in dircache:
+        if is_creat:
+            if ' ' in path+'\\'+i:
+                tools_env+='"%s"'%(path+'\\'+i)+';'
+            else:
+                tools_env+=path+'\\'+i+';'
+        getdirlist(dict_path+'$'+i,is_creat)
             
 def getdirlist(path='',is_creat=False):
     global root_path
@@ -45,18 +52,21 @@ def getdirlist(path='',is_creat=False):
     else:
         ddict['/']={}
         cache=os.listdir(root_path)
+        dircache=[]
         for i in cache:
             if os.path.isfile(root_path+'\\'+i):
                 ddict['/'][i]=1
                 i=i[:i.find('.')]
                 filelist[i]=root_path
             else:
-                if is_creat:
-                    if ' ' in root_path+'\\'+i:
-                        tools_env+='"%s"'%(root_path+'\\'+i)+';'
-                    else:
-                        tools_env+=root_path+'\\'+i+';'
-                getdirlist('$'+i,is_creat)
+                dircache.append(i)
+        for i in dircache:
+            if is_creat:
+                if ' ' in root_path+'\\'+i:
+                    tools_env+='"%s"'%(root_path+'\\'+i)+';'
+                else:
+                    tools_env+=root_path+'\\'+i+';'
+            getdirlist('$'+i,is_creat)
                 
 def setenv():
     os.popen('@echo off && setx %s %s'%(var_name,tools_env.strip(';')))
@@ -92,29 +102,26 @@ def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_
 
 def editbat(name,cmd,path,real_dir,is_start):
     bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
-    direct="""@echo off
-{} %* 
-"""
+    direct=comm_orig[0]+'\n'+'{}\n'
     cd_dir=""
     return_dir=""
     if real_dir:
-        return_dir="""%dl%
-cd %sour_dir%"""
-        cd_dir+="""set sour_dir=%CD%
-set dl=%CD:~0,2%
-"""
+        return_dir=comm_orig[1]+'\n'+comm_orig[2]+'\n'
+        cd_dir+=comm_orig[3]+'\n'+comm_orig[4]+'\n'
         cd_dir+=real_dir[:2]+'\n'
         cd_dir+="cd "+real_dir+'\n'
     cmd=cmd.replace("'",'"')
     if os.path.isfile(cmd):
         if '.exe' in cmd:
             if ' ' in cmd:
-                direct=direct.format(cd_dir+'start "" '*is_start+'"%s"'%cmd)+return_dir
+                direct=direct.format(cd_dir+'start "" '*is_start+'"%s"'%cmd+' %*')+return_dir
             else:
-                direct=direct.format(cd_dir+'start "" '*is_start+'%s'%cmd)+return_dir
+                direct=direct.format(cd_dir+'start "" '*is_start+'%s'%cmd+' %*')+return_dir
         else:
-            direct=direct.format(cd_dir+'"%s"'%cmd)+return_dir
+            direct=direct.format(cd_dir+'"%s"'%cmd+' %*')+return_dir
     else:
+        if '%*' in cmd:
+            cmd=cmd+' %*'
         direct=direct.format(cd_dir+cmd)+return_dir
     bat_file.write(direct.encode())
     
@@ -125,7 +132,10 @@ def addbat(name,cmd='',path='',real_dir='',is_start=True,is_re=False):
         elif path:
             if os.path.isdir(root_path+'\\'+path):
                 path+="\\"+name
-            os.rename(filelist[name]+'\\'+name+'.bat',root_path+'\\'+path+'.bat')
+            try:
+                os.rename(filelist[name]+'\\'+name+'.bat',root_path+'\\'+path+'.bat')
+            except:
+                print("Not found %s \\ %s"%(name,path))
             return 0
         elif cmd:
             editbat(name,cmd,filelist[name][len(root_path):],real_dir,is_start)
@@ -166,12 +176,52 @@ def create(path):
             os.mkdir(real_path)
     getdirlist(is_creat=True)
     setenv()
-    
+def out_command(coms,rows=20):
+    coms=coms.splitlines()
+    row=0
+    uchar=''
+    curr_row=0
+    while curr_row<len(coms):
+        sys.stdout.flush()
+        sys.stdin.flush()
+        try:
+            if row<rows:
+                sys.stdout.write(wait[1])
+                print(coms[curr_row])
+                row=row+1
+                curr_row+=1
+            else:
+                sys.stdout.write(wait[0])
+                uchar=msvcrt.getch()
+                if uchar == b' ':
+                    row=row-5
+                elif uchar in [b'e',b'q',b'\x03',b'\x1a']:
+                    raise KeyError()
+                else:
+                    row-=1
+        except Exception as e:
+            sys.stdout.write(wait[1])
+            print(coms[curr_row])
+            return 0
+
+def OutCommand(com_n):
+    comm_path=filelist[com_n]+'\\'+com_n+'.bat'
+    f=open(comm_path,'rb')
+    d=f.read().splitlines()
+    print('command: \n')
+    for i in d:
+        i=i.decode('utf-8')
+        if i.strip() not in comm_orig:
+            if 'start "" ' in i:
+                i=i[9:]
+            print('\t'+i)
+
 def help(parse):
     """ show """
     parse.add_argument('-c','--create',dest='is_creat',action='store_true', default=False,help="Construct system variables default:False")
     parse.add_argument('-help',dest='show_type',action='store_true', default=False,help="view type default:False")
     parse.add_argument('-hide',dest='is_hide',action='store_false', default=True,help="Show hide commands default:True")
+    parse.add_argument('-out',dest='out_command',help="View the contents of the command")
     
     """ search """
     parse.add_argument('-s','--search',dest='search_str',default='',help="Search specified string")
@@ -216,8 +266,11 @@ def main():
         delete(args.del_dire)
     elif args.add_dire:
         create(args.add_dire)
+    elif args.out_command:
+        OutCommand(args.out_command)
     else:
-        print(showdict(ddict,'',args.search_str,is_dire=args.dire_str,hide=args.is_hide)[1])
+        coms=showdict(ddict,'',args.search_str,is_dire=args.dire_str,hide=args.is_hide)[1]
+        out_command(coms)
 
 if __name__=='__main__':
     main()
