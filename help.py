@@ -5,7 +5,7 @@ root_path=r"D:\tools"
 @User: rot_will
 @date: 2022.1.29
 """
-import os
+import os,re
 import argparse
 import sys,msvcrt
 wait=['< -- wait -- >\r','              \r']
@@ -23,7 +23,7 @@ def updir(cmd,path,dict_path,is_creat=False):
     for i in cache:
         if os.path.isfile(path+'/'+i):
             exec("%s['%s']=1"%(cmd,i))
-            i=i[:i.find('.')]
+            i=i[:i.rfind('.')]
             filelist[i]=path
         else:
             dircache.append(i)
@@ -100,32 +100,48 @@ def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_
                 n=n+1
     return n,cache
 
-def editbat(name,cmd,path,real_dir,is_start):
+def get_cmd(path):
+    f=open(path,'rb')
+    data=f.read().decode('utf-8')
+    cmd=re.findall('set c=(.*)',data)[0]
+    is_start=1
+    if 'start ""'  in data:
+        is_start=0
+    return cmd
+
+def get_des(path):
+    f=open(path)
+    data=f.read()
+    des=re.findall('set des=(.*)',data)[0]
+    return des
+
+def editbat(name,cmd,path,real_dir,represent,is_start):
     bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
-    direct=comm_orig[0]+'\n'+'{}\n'
+    
+    pad='"%c%" %*\n'
+    cmd_line='set c='
+    direct=comm_orig[0]+'\n'
     cd_dir=""
     return_dir=""
+    des_line='set des=%s'%represent
     if real_dir:
         return_dir=comm_orig[1]+'\n'+comm_orig[2]+'\n'
         cd_dir+=comm_orig[3]+'\n'+comm_orig[4]+'\n'
         cd_dir+=real_dir[:2]+'\n'
         cd_dir+="cd "+real_dir+'\n'
+    
     cmd=cmd.replace("'",'"')
     if os.path.isfile(cmd):
-        if '.exe' in cmd:
-            if ' ' in cmd:
-                direct=direct.format(cd_dir+'start "" '*is_start+'"%s"'%cmd+' %*')+return_dir
-            else:
-                direct=direct.format(cd_dir+'start "" '*is_start+'%s'%cmd+' %*')+return_dir
-        else:
-            direct=direct.format(cd_dir+'"%s"'%cmd+' %*')+return_dir
+        if is_start:
+            pad='start "" %c% %*\n'
+        cmd=os.path.realpath(cmd)
+        cmd_line+=cmd
     else:
-        if '%*' in cmd:
-            cmd=cmd+' %*'
-        direct=direct.format(cd_dir+cmd)+return_dir
+        cmd_line+=cmd
+    direct=direct+cd_dir+cmd_line+'\n'+pad+return_dir+des_line
     bat_file.write(direct.encode())
     
-def addbat(name,cmd='',path='',real_dir='',is_start=True,is_re=False):
+def addbat(name,cmd='',path='',real_dir='',represent='',is_start=True,is_re=False):
     if is_re:
         if path and cmd:
             exit("Only command contents or command directories can be replaced")
@@ -138,13 +154,15 @@ def addbat(name,cmd='',path='',real_dir='',is_start=True,is_re=False):
                 print("Not found %s \\ %s"%(name,path))
             return 0
         elif cmd:
-            editbat(name,cmd,filelist[name][len(root_path):],real_dir,is_start)
+            editbat(name,cmd,filelist[name][len(root_path):],real_dir,represent,is_start)
             return 0
         else:
-            exit("When replace exists, a directory or command must exist")
+            cmd=get_cmd(filelist[name]+'\\'+name+'.bat')
+            editbat(name,cmd,filelist[name][len(root_path):],real_dir,represent,is_start)
+            exit("Because the location and content of the command have not been changed\n\tI guess there are minor changes\n\tbut I still tried to modify it")
     elif name in filelist:
         exit("There are duplicate options")
-    editbat(name,cmd,path,real_dir,is_start)
+    editbat(name,cmd,path,real_dir,represent,is_start)
     
 def deldir(path):
     cache=os.listdir(path)
@@ -176,6 +194,7 @@ def create(path):
             os.mkdir(real_path)
     getdirlist(is_creat=True)
     setenv()
+    
 def out_command(coms,rows=20):
     coms=coms.splitlines()
     row=0
@@ -204,18 +223,25 @@ def out_command(coms,rows=20):
             print(coms[curr_row])
             return 0
 
-def OutCommand(com_n):
+
+def OutCommands(com_s):
+    is_first=1
+    for i in filelist.keys():
+        if com_s in i:
+            OutCommand(i,is_first)
+            is_first=0
+            
+def OutCommand(com_n,is_first):
     comm_path=filelist[com_n]+'\\'+com_n+'.bat'
     f=open(comm_path,'rb')
-    d=f.read().splitlines()
-    print('command: \n')
-    for i in d:
-        i=i.decode('utf-8')
-        if i.strip() not in comm_orig:
-            if 'start "" ' in i:
-                i=i[9:]
-            print('\t'+i)
-
+    d=f.read().decode('utf-8')
+    if is_first:
+        print('command: ')
+    cmd=re.findall('set c=(.*)',d)[0]
+    des=re.findall('set des=(.*)',d)[0]
+    print('    '+cmd)
+    if des:
+        print("      des: "+des)
 def help(parse):
     """ show """
     parse.add_argument('-c','--create',dest='is_creat',action='store_true', default=False,help="Construct system variables default:False")
@@ -234,6 +260,7 @@ def help(parse):
     
     """ command """
     parse.add_argument('-n','--name',dest='name',default='',help='Specify script name')
+    parse.add_argument('-r','--represent',dest='represent',default='',help="command note")
     parse.add_argument('-replace',dest='is_re',action='store_true',default=False,help="Replace the original command default:False")
     
     """ type """
@@ -261,13 +288,13 @@ def main():
     elif args.name:
         if not (((args.direct or args.type) and args.is_re) or ((args.direct and args.type) or args.is_re)):
             exit("When name exists, direct is required")
-        addbat(args.name,args.direct,args.type,args.target_dir,args.is_start,args.is_re)
+        addbat(args.name,args.direct,args.type,args.target_dir,args.represent,args.is_start,args.is_re)
     elif args.del_dire:
         delete(args.del_dire)
     elif args.add_dire:
         create(args.add_dire)
     elif args.out_command:
-        OutCommand(args.out_command)
+        OutCommands(args.out_command)
     else:
         coms=showdict(ddict,'',args.search_str,is_dire=args.dire_str,hide=args.is_hide)[1]
         out_command(coms)
