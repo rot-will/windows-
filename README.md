@@ -6,39 +6,30 @@ setup.py<br>
         需要重启cmd<br>
 <br>
 <br>
-help<br>
-    -h, --help            show this help message and exit<br>
-    -c, --create          构建系统变量<br>
-    -help                 查看类型与帮助文档 <br>
-    -hide                 查看所有类型或变量 除了 real_hide中的命令<br>
-    -s SEARCH_STR, --search SEARCH_STR<br>
-                        搜索命令或类型<br>
-    -dire                 允许搜索类型<br>
-    -d DIRECT, --direct DIRECT<br>
-                        命令内容<br>
-    -start                是否使用start启动exe程序 (当程序为命令行工具时 建议使用该参数)<br>
-    -tardir TARGET_DIR    当命令需要在指定的目录中执行时 建议使用该参数 <br>
-    -n NAME, --name NAME  命令名称<br>
-    -replace              是否允许修改 默认 不允许<br>
-        当同时存在 -d -n 时修改命令<br>
-        当同时存在 -n -t 时修改命令名称 或 命令路径 <br>
-    -t TYPE, --type TYPE  类型路径 xx/xxx/xxxx<br>
-    -add ADD_DIRE         添加类型<br>
-    -del DEL_DIRE         删除类型或命令<br>
-    <br>
-    <br>
-    helper -d 命令执行字符串  -n 命令名称 -t 命令路径  <br>
-        创建一个命令<br>
-    <br>
-    <br>
-    -c 构建系统变量 tools 将所有目录加入tools中<br>
-    -s 搜索指定命令名称  当存在 -dire 参数时用于搜索目录名称 <br>
-    -help 显示帮助文档并显示目录框架<br>
-    -d 添加的命令 当目标为exe时 使用-start 指定是否使用start 命令开启<br>
-    -n 命令名称<br>
-    -t 命令所属类型<br>
-    -replace 当存在时 命令 与 命令类型只需要一个 用来修改命令 或者 修改命令路径 或 路径/名称<br>
-    -tardir 命令执行目录 当命令需要在指定目录执行时<br>
-    -add 添加的类型<br>
-    -del 删除的类型 或 命令<br>
-    -hide 当存在时 显示hide 目录 当不存在时不显示  real_hide 必定不显示<br>
+<br>
+<br>
+usage: help [-h] [-c] [-help] [-hide] [-out OUT_COMMAND] [-s SEARCH_STR] [-dire] [-d DIRECT] [-start]<br>
+            [-tardir TARGET_DIR] [-n NAME] [-r REPRESENT] [-replace] [-t TYPE] [-add ADD_DIRE] [-del DEL_DIRE]<br>
+<br>
+optional arguments:<br>
+  -h, --help            show this help message and exit<br>
+  -c, --create          Construct system variables default:False<br>
+  -help                 view type default:False     查看帮助文档,并显示所有目录<br> 
+  -hide                 Show hide commands default:True    列出命令,包括隐藏的文件<br>
+  -out OUT_COMMAND      View the contents of the command    显示命令的内容,与描述<br>
+  -s SEARCH_STR, --search SEARCH_STR    指定搜索的字符串 可以传入一部分<br>
+                        Search specified string    搜索命令名称<br>
+  -dire                 Search specified type   指定搜索目录名称,输出搜索到的目录中的所有命令  与-s 一起使用<br>
+  
+  -start                Do you want to use start to launch exe    指定窗口程序不使用 start命令<br>
+  -tardir TARGET_DIR    Specify target program directory    当程序只能在指定目录使用时,使用这个参数,指定目录<br>
+  -n NAME, --name NAME  Specify script name    指定命令的名称<br>
+  -t TYPE, --type TYPE  Type of command xx/xxx/xxxx    指定添加的命令所在目录<br>
+  -d DIRECT, --direct DIRECT    指定添加的命令<br>
+                        Specify command<br>                      
+  -r REPRESENT, --represent REPRESENT    指定命令的描述<br>
+                        command note<br>
+  -replace              Replace the original command default:False    用于修改命令(命令内容,命令位置,命令描述,命令是否使用start)<br>
+  
+  -add ADD_DIRE         Added type    添加目录<br>
+  -del DEL_DIRE         Delete command or type    删除目录或命令<br>
