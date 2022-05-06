@@ -1,5 +1,3 @@
-var_name=r"tools"
-root_path=r"D:\tools"
 #!python3
 """
 @User: rot_will
@@ -117,7 +115,6 @@ def get_des(path):
 
 def editbat(name,cmd,path,real_dir,represent,is_start):
     bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
-    
     pad='"%c%" %*\n'
     cmd_line='set c='
     direct=comm_orig[0]+'\n'
@@ -133,10 +130,13 @@ def editbat(name,cmd,path,real_dir,represent,is_start):
     cmd=cmd.replace("'",'"')
     if os.path.isfile(cmd):
         if is_start:
-            pad='start "" %c% %*\n'
+            pad='start "" "%c%" %*\n'
         cmd=os.path.realpath(cmd)
         cmd_line+=cmd
     else:
+        pad='%c% %*\n'
+        if '%*' in cmd:
+            pad='%c% \n'
         cmd_line+=cmd
     direct=direct+cd_dir+cmd_line+'\n'+pad+return_dir+des_line
     bat_file.write(direct.encode())
@@ -158,7 +158,8 @@ def addbat(name,cmd='',path='',real_dir='',represent='',is_start=True,is_re=Fals
             return 0
         else:
             cmd=get_cmd(filelist[name]+'\\'+name+'.bat')
-            editbat(name,cmd,filelist[name][len(root_path):],real_dir,represent,is_start)
+            des=get_des(ilelist[name]+'\\'+name+'.bat')
+            editbat(name,cmd,filelist[name][len(root_path):],real_dir,des,is_start)
             exit("Because the location and content of the command have not been changed\n\tI guess there are minor changes\n\tbut I still tried to modify it")
     elif name in filelist:
         exit("There are duplicate options")
@@ -242,6 +243,7 @@ def OutCommand(com_n,is_first):
     print('    '+cmd)
     if des:
         print("      des: "+des)
+        
 def help(parse):
     """ show """
     parse.add_argument('-c','--create',dest='is_creat',action='store_true', default=False,help="Construct system variables default:False")
