@@ -115,30 +115,30 @@ def get_des(path):
 
 def editbat(name,cmd,path,real_dir,represent,is_start):
     bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
-    pad='"%c%" %*\n'
+    pad='"%c%" %*\r\n'
     cmd_line='set c='
-    direct=comm_orig[0]+'\n'
+    direct=comm_orig[0]+'\r\n'
     cd_dir=""
     return_dir=""
     des_line='set des=%s'%represent
     if real_dir:
-        return_dir=comm_orig[1]+'\n'+comm_orig[2]+'\n'
-        cd_dir+=comm_orig[3]+'\n'+comm_orig[4]+'\n'
-        cd_dir+=real_dir[:2]+'\n'
-        cd_dir+="cd "+real_dir+'\n'
+        return_dir=comm_orig[1]+'\r\n'+comm_orig[2]+'\r\n'
+        cd_dir+=comm_orig[3]+'\r\n'+comm_orig[4]+'\r\n'
+        cd_dir+=real_dir[:2]+'\r\n'
+        cd_dir+="cd "+real_dir+'\r\n'
     
     cmd=cmd.replace("'",'"')
     if os.path.isfile(cmd):
         if is_start:
-            pad='start "" "%c%" %*\n'
+            pad='start "" "%c%" %*\r\n'
         cmd=os.path.realpath(cmd)
         cmd_line+=cmd
     else:
-        pad='%c% %*\n'
+        pad='%c% %*\r\n'
         if '%*' in cmd:
-            pad='%c% \n'
+            pad='%c% \r\n'
         cmd_line+=cmd
-    direct=direct+cd_dir+cmd_line+'\n'+pad+return_dir+des_line
+    direct=direct+cd_dir+cmd_line+'\r\n'+pad+return_dir+des_line
     bat_file.write(direct.encode())
     
 def addbat(name,cmd='',path='',real_dir='',represent='',is_start=True,is_re=False):
