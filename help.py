@@ -1,7 +1,7 @@
 #!python3
 """
 @User: rot_will
-@date: 2022.1.29
+@date: 2022.5.16
 """
 import os,re
 import argparse
@@ -10,7 +10,7 @@ wait=['< -- wait -- >\r','              \r']
 ddict={}
 tools_env=root_path+';'
 filelist={}
-comm_orig=['@echo off','%dl%','cd %sour_dir%','set sour_dir=%CD%','set dl=%CD:~0,2%','']
+comm_orig=['@echo off','cd /d %sour_dir%','set sour_dir=%CD%','']
 def updir(cmd,path,dict_path,is_creat=False):
     global ddict
     global filelist
@@ -20,6 +20,8 @@ def updir(cmd,path,dict_path,is_creat=False):
     dircache=[]
     for i in cache:
         if os.path.isfile(path+'/'+i):
+            if i[-4:]!='.bat':
+                continue
             exec("%s['%s']=1"%(cmd,i))
             i=i[:i.rfind('.')]
             filelist[i]=path
@@ -53,6 +55,8 @@ def getdirlist(path='',is_creat=False):
         dircache=[]
         for i in cache:
             if os.path.isfile(root_path+'\\'+i):
+                if i[-4:]!='.bat':
+                    continue
                 ddict['/'][i]=1
                 i=i[:i.find('.')]
                 filelist[i]=root_path
@@ -98,69 +102,82 @@ def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_
                 n=n+1
     return n,cache
 
-def get_cmd(path):
+def get_cmd_info(path):
     f=open(path,'rb')
     data=f.read().decode('utf-8')
-    cmd=re.findall('set c=(.*)',data)[0]
-    is_start=1
+    cmd=re.findall('set c=(.*)',data)[0].strip()
+    des=re.findall('set des=(.*)',data)[0].strip()
+    real_dir=''
+    try:
+        real_dir=re.findall('set real_dir="(.*?)"',data)[0].strip()
+    except Exception as e:
+        print(e)
+        
+    is_start=0
     if 'start ""'  in data:
-        is_start=0
-    return cmd
+        is_start=1
+    return cmd,des,is_start,real_dir
 
-def get_des(path):
-    f=open(path)
-    data=f.read()
-    des=re.findall('set des=(.*)',data)[0]
-    return des
 
 def editbat(name,cmd,path,real_dir,represent,is_start):
-    bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
-    pad='"%c%" %*\r\n'
-    cmd_line='set c='
-    direct=comm_orig[0]+'\r\n'
-    cd_dir=""
-    return_dir=""
-    des_line='set des=%s'%represent
-    if real_dir:
-        return_dir=comm_orig[1]+'\r\n'+comm_orig[2]+'\r\n'
-        cd_dir+=comm_orig[3]+'\r\n'+comm_orig[4]+'\r\n'
-        cd_dir+=real_dir[:2]+'\r\n'
-        cd_dir+="cd "+real_dir+'\r\n'
-    
-    cmd=cmd.replace("'",'"')
-    if os.path.isfile(cmd):
-        if is_start:
-            pad='start "" "%c%" %*\r\n'
-        cmd=os.path.realpath(cmd)
-        cmd_line+=cmd
-    else:
-        pad='%c% %*\r\n'
-        if '%*' in cmd:
-            pad='%c% \r\n'
-        cmd_line+=cmd
-    direct=direct+cd_dir+cmd_line+'\r\n'+pad+return_dir+des_line
-    bat_file.write(direct.encode())
-    
+    file_path=root_path+'\\'+path+'\\'+name+'.bat'
+    bat_file=open(file_path,'wb')
+    try:
+        pad='"%c%" %*\r\n'
+        cmd_line='set c='
+        direct=comm_orig[0]+'\r\n'
+        cd_dir=""
+        return_dir=""
+        des_line='set des=%s'%represent
+        if real_dir:
+            return_dir=comm_orig[1]+'\r\n'
+            #cd_dir+=comm_orig[3]+'\r\n'+comm_orig[4]+'\r\n'
+            cd_dir+=comm_orig[2]+'\r\n'
+            cd_dir+='set real_dir="%s"'%real_dir+'\r\n'
+            cd_dir+="cd /d %real_dir%"+'\r\n'
+        
+        cmd=cmd.replace("'",'"')
+        if os.path.isfile(cmd):
+            if is_start:
+                pad='start "" "%c%" %*\r\n'
+            cmd=os.path.realpath(cmd)
+            cmd_line+=cmd
+        else:
+            pad='%c% %*\r\n'
+            if '%*' in cmd:
+                pad='%c% \r\n'
+            cmd_line+=cmd
+        direct=direct+cd_dir+cmd_line+'\r\n'+pad+return_dir+des_line
+        bat_file.write(direct.encode())
+    except:
+        os.remove(file_path)
 def addbat(name,cmd='',path='',real_dir='',represent='',is_start=True,is_re=False):
     if is_re:
+        try:
+            cmd_c,des,is_start_c,real_dir_c=get_cmd_info(filelist[name]+'\\'+name+'.bat')
+        except KeyError:
+            print("Not found %s \\ %s"%(name,path))
+        if is_start==True and is_start_c!=is_start:
+            is_start=False
+        if not represent:
+            represent=des
+        if not cmd:
+            cmd=cmd_c
+        if not real_dir:
+            real_dir=real_dir_c
         if path and cmd:
             exit("Only command contents or command directories can be replaced")
         elif path:
             if os.path.isdir(root_path+'\\'+path):
                 path+="\\"+name
-            try:
-                os.rename(filelist[name]+'\\'+name+'.bat',root_path+'\\'+path+'.bat')
-            except:
-                print("Not found %s \\ %s"%(name,path))
-            return 0
-        elif cmd:
-            editbat(name,cmd,filelist[name][len(root_path):],real_dir,represent,is_start)
+            elif os.path.isdir(root_path+'\\'+path+'.bat'):
+                exit("There are duplicate options")
+                return 0
+            os.rename(filelist[name]+'\\'+name+'.bat',root_path+'\\'+path+'.bat')
             return 0
         else:
-            cmd=get_cmd(filelist[name]+'\\'+name+'.bat')
-            des=get_des(ilelist[name]+'\\'+name+'.bat')
-            editbat(name,cmd,filelist[name][len(root_path):],real_dir,des,is_start)
-            exit("Because the location and content of the command have not been changed\n\tI guess there are minor changes\n\tbut I still tried to modify it")
+            editbat(name,cmd,filelist[name][len(root_path)+1:],real_dir,represent,is_start)
+            return 0;
     elif name in filelist:
         exit("There are duplicate options")
     editbat(name,cmd,path,real_dir,represent,is_start)
@@ -224,25 +241,35 @@ def out_command(coms,rows=20):
             print(coms[curr_row])
             return 0
 
+def out_des_com(comm_list,cmd_width,des_width):
+    print("command:")
+    for i in comm_list:
+        cmd=i[0].ljust(cmd_width,b' ').decode('gbk')
+        des=i[2].ljust(des_width,b' ').decode('gbk')
+        print("   %s : %s : %s"%(cmd,des,i[1]))
+
 
 def OutCommands(com_s):
-    is_first=1
+    out_comm_list=[]
+    cmd_width=0
+    des_width=0
     for i in filelist.keys():
         if com_s in i:
-            OutCommand(i,is_first)
-            is_first=0
-            
-def OutCommand(com_n,is_first):
+            cache=(get_OutCommand(i))
+            if len(cache[0])>cmd_width:
+                cmd_width=len(cache[0])
+            if len(cache[2])>des_width:
+                des_width=len(cache[2])
+            out_comm_list.append(cache)
+    out_des_com(out_comm_list,cmd_width,des_width)
+    
+def get_OutCommand(com_n):
     comm_path=filelist[com_n]+'\\'+com_n+'.bat'
     f=open(comm_path,'rb')
     d=f.read().decode('utf-8')
-    if is_first:
-        print('command: ')
     cmd=re.findall('set c=(.*)',d)[0]
-    des=re.findall('set des=(.*)',d)[0]
-    print('    '+cmd)
-    if des:
-        print("      des: "+des)
+    des=re.findall('set des=(.*)',d)[0].encode("gbk")
+    return [com_n.encode("gbk"),cmd,des]
         
 def help(parse):
     """ show """

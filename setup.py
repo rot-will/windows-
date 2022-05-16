@@ -13,13 +13,16 @@ else:
 if not os.path.isdir(root_path):
     try:
         os.mkdir(root_path)
-        if not os.path.isdir(root_path):
-            os.mkdir(root_path+'\\hide')
+    except:
+        exit("A file with the same name may exist")
+if not os.path.isdir(root_path+'\\hide'):
+    try:
+        os.mkdir(root_path+'\\hide')
     except:
         exit("A file with the same name may exist")
 
 path=os.popen('reg query HKEY_CURRENT_USER\Environment').read()
-path_var=re.findall(' +[Pp]ath +REG_EXPAND_SZ +(.*)',path)[0]
+path_var=re.findall(' +[Pp]ath +REG_\w*SZ +(.*)',path)[0]
 path_var=path_var.replace("%"+var_name+"%",'')
 path_var+=";%"+"%s"%var_name+"%"
 path_var=path_var.replace(';;',';').replace('%','"%"')

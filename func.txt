@@ -1,0 +1,16 @@
+updir: 向filelist文件字典中写入文件的路径(相对),当存在-c 参数时,将路径写入存储环境变量的变量
+getdirlist: 获取当前文件或目录所处ddict的索引值,将路径写入ddict,调用updir
+setenv: 将获取的目录路径写入到环境变量中
+showdict: 用于构造输出目录和命令的内容
+get_cmd_info: 用于获取创建过的命令的信息 (命令,注释,执行时所在目录,是否使用start命令)
+editbat: 用来创建或修改bat文件
+addbat: 对用户传入的数据进行处理,判断是否 创建/修改
+deldir: 用于删除指定目录
+delete: 用于删除文件或目录,删除目录会调用deldir
+create: 用于创建目录,会自动更新环境变量
+out_command: 用于输出数据,允许分段输出,使用e q `ctrl+c` `ctrl+z`退出
+out_des_com: 格式化输出命令内容
+OutCommands: 获取命令中相关字符串宽度(命令名称,注释)
+get_OutCommand: 获取命令中相关字符串(使用命令,注释)
+help: 构造帮助文档
+main: 执行主函数
