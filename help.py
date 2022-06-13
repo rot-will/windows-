@@ -1,7 +1,7 @@
 #!python3
 """
 @User: rot_will
-@date: 2022.5.16
+@date: 2022.6.13
 """
 import os,re
 import argparse
@@ -104,18 +104,18 @@ def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_
 
 def get_cmd_info(path):
     f=open(path,'rb')
-    data=f.read().decode('utf-8')
+    data=f.read().decode('gbk')
     cmd=re.findall('set c=(.*)',data)[0].strip()
     des=re.findall('set des=(.*)',data)[0].strip()
     real_dir=''
     try:
         real_dir=re.findall('set real_dir="(.*?)"',data)[0].strip()
-    except Exception as e:
-        print(e)
+    except IndexError:
+        pass
         
-    is_start=0
+    is_start=False
     if 'start ""'  in data:
-        is_start=1
+        is_start=True
     return cmd,des,is_start,real_dir
 
 
@@ -148,26 +148,28 @@ def editbat(name,cmd,path,real_dir,represent,is_start):
                 pad='%c% \r\n'
             cmd_line+=cmd
         direct=direct+cd_dir+cmd_line+'\r\n'+pad+return_dir+des_line
-        bat_file.write(direct.encode())
+        bat_file.write(direct.encode('gbk'))
     except:
         os.remove(file_path)
 def addbat(name,cmd='',path='',real_dir='',represent='',is_start=True,is_re=False):
     if is_re:
+        if path and cmd:
+            exit("Only command contents or command directories can be replaced")
         try:
             cmd_c,des,is_start_c,real_dir_c=get_cmd_info(filelist[name]+'\\'+name+'.bat')
         except KeyError:
             print("Not found %s \\ %s"%(name,path))
         if is_start==True and is_start_c!=is_start:
             is_start=False
+        elif is_start==False and is_start_c==is_start:
+            is_start=True
         if not represent:
             represent=des
         if not cmd:
             cmd=cmd_c
         if not real_dir:
             real_dir=real_dir_c
-        if path and cmd:
-            exit("Only command contents or command directories can be replaced")
-        elif path:
+        if path:
             if os.path.isdir(root_path+'\\'+path):
                 path+="\\"+name
             elif os.path.isdir(root_path+'\\'+path+'.bat'):
@@ -254,7 +256,7 @@ def OutCommands(com_s):
     cmd_width=0
     des_width=0
     for i in filelist.keys():
-        if com_s in i:
+        if com_s in i or com_s=='*':
             cache=(get_OutCommand(i))
             if len(cache[0])>cmd_width:
                 cmd_width=len(cache[0])
@@ -266,7 +268,7 @@ def OutCommands(com_s):
 def get_OutCommand(com_n):
     comm_path=filelist[com_n]+'\\'+com_n+'.bat'
     f=open(comm_path,'rb')
-    d=f.read().decode('utf-8')
+    d=f.read().decode('gbk')
     cmd=re.findall('set c=(.*)',d)[0]
     des=re.findall('set des=(.*)',d)[0].encode("gbk")
     return [com_n.encode("gbk"),cmd,des]
@@ -315,7 +317,7 @@ def main():
         print(showdict(ddict,'',is_show_file=not args.show_type)[1])
         exit(0)
     elif args.name:
-        if not (((args.direct or args.type) and args.is_re) or ((args.direct and args.type) or args.is_re)):
+        if (not (args.direct or args.type)):
             exit("When name exists, direct is required")
         addbat(args.name,args.direct,args.type,args.target_dir,args.represent,args.is_start,args.is_re)
     elif args.del_dire:
