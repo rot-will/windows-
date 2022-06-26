@@ -9,8 +9,8 @@ import sys,msvcrt
 import colorama
 
 colorama.init(autoreset=True)
-file_color=colorama.Fore.LIGHTBLUE
-dire_color=colorama.Fore.LIGHTGREEN
+file_color=colorama.Fore.LIGHTBLUE_EX
+dire_color=colorama.Fore.LIGHTGREEN_EX
 back_color=colorama.Fore.RESET
 
 wait=['< -- wait -- >\r','              \r']
