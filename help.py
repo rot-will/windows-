@@ -1,11 +1,17 @@
+var_name=r"tools"
+root_path=r"B:\tools"
 #!python3
 """
 @User: rot_will
-@date: 2022.6.13
+@date: 2022.5.16
 """
 import os,re
 import argparse
 import sys,msvcrt
+file_color="\033[94m"
+dire_color="\033[92m"
+back_color="\033[0m"
+
 wait=['< -- wait -- >\r','              \r']
 ddict={}
 tools_env=root_path+';'
@@ -74,32 +80,48 @@ def setenv():
     os.popen('@echo off && setx %s %s'%(var_name,tools_env.strip(';')))
     print('[+] save success')
 
-def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_in=-1,hide=True):
+def showdict(dir_dict,pad="",search_str="",is_show_file=True,is_dire=False,dire_in=-1,hide=True,num_col=0):
     n=0
     cache=''
+    file_cache=""
+    file_num=0
+    file_for=file_color+'{}'+back_color+' / '
+    dire_for='\n{}'+"*- "+dire_color+'{}'+back_color
     for i in dir_dict:
         if dir_dict[i]==1:
             if is_show_file and ((dire_in + is_dire)==-1 or (dire_in+is_dire)==2):
-                i=i[:i.find('.')]
+                i=i[:i.rfind('.')]
                 if search_str and not is_dire:
                     if search_str in i:
-                        cache+="%s|- %s\n"%(pad,i)
+                        file_num+=1
+                        file_cache+="%s / "%(file_color+i+back_color)
                         n=n+1
                 else:
-                    cache+="%s|- %s\n"%(pad,i)
+                    file_num+=1
+                    file_cache+="%s / "%(file_color+i+back_color)
                     n=n+1
+                    
+                if file_num>=num_col:
+                    file_num=0
+                    file_cache=file_cache[:-3]+'\n'+pad+" \\-  "
         else:
             if ('hide' in i and hide) or ('real_hide' in i):
                 continue
             n_1=0
             cache_1=''
             if is_dire:
-                n_1,cache_1=showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,(search_str in i or (dire_in==1)),hide)
+                n_1,cache_1=showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,(search_str in i or (dire_in==1)),hide,num_col)
             else:
-                n_1,cache_1=showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,-1,hide)
+                n_1,cache_1=showdict(dir_dict[i],pad+'  ',search_str,is_show_file,is_dire,-1,hide,num_col)
             if n_1!=0 or search_str=='':
-                cache+="%s*- %s\n"%(pad,i)+cache_1
+                cache+=dire_for.format(pad,i)+cache_1
+                #cache+="\n%s*- %s"%(pad,dire_color+i+back_color)+cache_1
                 n=n+1
+    if file_cache=="":
+        file_cache=''
+    else:
+        file_cache="\n"+pad+'+-- '+file_cache[:-3]
+    cache=cache+file_cache
     return n,cache
 
 def get_cmd_info(path):
@@ -151,6 +173,7 @@ def editbat(name,cmd,path,real_dir,represent,is_start):
         bat_file.write(direct.encode('gbk'))
     except:
         os.remove(file_path)
+        
 def addbat(name,cmd='',path='',real_dir='',represent='',is_start=True,is_re=False):
     if is_re:
         if path and cmd:
@@ -279,6 +302,7 @@ def help(parse):
     parse.add_argument('-help',dest='show_type',action='store_true', default=False,help="view type default:False")
     parse.add_argument('-hide',dest='is_hide',action='store_false', default=True,help="Show hide commands default:True")
     parse.add_argument('-out',dest='out_command',help="View the contents of the command")
+    parse.add_argument('-noc',dest='num_col',default=6,help="Number of columns")
     
     """ search """
     parse.add_argument('-s','--search',dest='search_str',default='',help="Search specified string")
@@ -327,7 +351,7 @@ def main():
     elif args.out_command:
         OutCommands(args.out_command)
     else:
-        coms=showdict(ddict,'',args.search_str,is_dire=args.dire_str,hide=args.is_hide)[1]
+        coms=showdict(ddict,'',args.search_str,is_dire=args.dire_str,hide=args.is_hide,num_col=args.num_col)[1]
         out_command(coms)
 
 if __name__=='__main__':

@@ -1,3 +1,4 @@
+# -- coding=gbk --
 import sys,os,re
 if sys.version_info.major!=3:
     exit("python3 must be used")
@@ -41,17 +42,18 @@ f=open(root_path+'\\hide\\help.py','w')
 f.write(script_data)
 f.close()
 print("[+] create file success")
-def editbat(name,cmd,path):
-    bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
-    direct="""@echo off
-{} %* 
-"""
-    cmd=cmd.replace("'",'"')
-    direct=direct.format(cmd)
-    bat_file.write(direct.encode())
-    bat_file.close()
+#def editbat(name,cmd,path):
+#    bat_file=open(root_path+'/'+path+'/'+name+'.bat','wb')
+#    direct="""@echo off
+#{} %* 
+#"""
+#    cmd=cmd.replace("'",'"')
+#    direct=direct.format(cmd)
+#    bat_file.write(direct.encode())
+#    bat_file.close()
 
-cmd="%s %s\\hide\\help.py"%(python_path,root_path)
-editbat("helper",cmd,'hide')
+cmd="%s %s\\hide\\help.py "%(python_path,root_path)
+#editbat("helper",cmd,'hide')
+os.system(cmd+'-r °ïÖúÎÄµµ -t hide -n helper  -d "%s"'%cmd)
 os.system(cmd+' -c')
 
