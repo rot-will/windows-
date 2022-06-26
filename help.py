@@ -9,9 +9,9 @@ import sys,msvcrt
 import colorama
 
 colorama.init(autoreset=True)
-file_color="\033[94m"
-dire_color="\033[92m"
-back_color="\033[0m"
+file_color=colorara.Fore.LIGHTBLUE
+dire_color=colorara.Fore.LIGHTGREEN
+back_color=colorara.Fore.RESET
 
 wait=['< -- wait -- >\r','              \r']
 ddict={}
