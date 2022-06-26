@@ -342,7 +342,7 @@ def main():
         print(showdict(ddict,'',is_show_file=not args.show_type)[1])
         exit(0)
     elif args.name:
-        if (not (args.direct or args.type)) or args.is_re:
+        if (not (args.direct or args.type or args.is_re)) :
             exit("When name exists, direct is required")
         addbat(args.name,args.direct,args.type,args.target_dir,args.represent,args.is_start,args.is_re)
     elif args.del_dire:
