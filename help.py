@@ -6,6 +6,9 @@
 import os,re
 import argparse
 import sys,msvcrt
+import colorama
+
+colorama.init(autoreset=True)
 file_color="\033[94m"
 dire_color="\033[92m"
 back_color="\033[0m"
