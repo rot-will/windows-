@@ -1,3 +1,4 @@
+需要安装 colorama 模块<br>
 setup.py<br>
     python3 setup.py 命令储存目录 [环境变量名称]<br>
         目录可以是创建好的 也可以不创建 <br>
