@@ -221,8 +221,10 @@ def delete(path):
     if os.path.isdir(root_path+'/'+path):
         deldir(root_path+'/'+path)
         os.rmdir(root_path+'/'+path)
+    elif os.path.isfile(root_path+'/'+path+'.bat'):
+        os.remove(root_path+'/'+path+'.bat')
     elif filelist[path]:
-        os.remove(root_path+'/'+filelist[path][0]+'/'+path+'.bat')
+        os.remove(filelist[path][0]+'/'+path+'.bat')
     else:
         exit('The command or directory does not exist')
 
