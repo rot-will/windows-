@@ -1,4 +1,3 @@
-需要安装 colorama 模块<br>
 setup.py<br>
     python3 setup.py 命令储存目录 [环境变量名称]<br>
         目录可以是创建好的 也可以不创建 <br>
@@ -9,7 +8,7 @@ setup.py<br>
 <br>
 <br>
 <br>
-usage: help [-h] [-c] [-help] [-hide] [-out OUT_COMMAND] [-noc NUM_COL] [-s SEARCH_STR] [-dire] [-d DIRECT] [-start]<br>
+usage: help [-h] [-c] [-help] [-hide] [-out OUT_COMMAND] [-s SEARCH_STR] [-dire] [-d DIRECT] [-start]<br>
             [-tardir TARGET_DIR] [-n NAME] [-r REPRESENT] [-replace] [-t TYPE] [-add ADD_DIRE] [-del DEL_DIRE]<br>
 <br>
 optional arguments:<br>
@@ -18,7 +17,6 @@ optional arguments:<br>
   -help                 view type default:False     查看帮助文档,并显示所有目录<br> 
   -hide                 Show hide commands default:True    列出命令,包括隐藏的文件<br>
   -out OUT_COMMAND      View the contents of the command    显示命令的内容,与描述<br>
-   -noc NUM_COL         Number of columns  指定每行命令名称个数<br>
   -s SEARCH_STR, --search SEARCH_STR    指定搜索的字符串 可以传入一部分<br>
                         Search specified string    搜索命令名称<br>
   -dire                 Search specified type   指定搜索目录名称,输出搜索到的目录中的所有命令  与-s 一起使用<br>
