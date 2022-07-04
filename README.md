@@ -32,4 +32,4 @@ optional arguments:<br>
   -replace              Replace the original command default:False    用于修改命令(命令内容,命令位置,命令描述,命令是否使用start)<br>
   
   -add ADD_DIRE         Added type    添加目录<br>
-  -del DEL_DIRE         Delete command or type    删除目录或命令<br>
+  -del DEL_DIRE         Delete command or type    删除目录或命令 (如果命令名称与根目录下目录或命令冲突，则使用命令相对于根目录的路径)<br>
